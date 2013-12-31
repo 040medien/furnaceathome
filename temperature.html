@@ -1,0 +1,152 @@
+<html>
+ <head>
+<title>Furnace at Home</title>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/flot/0.8.1/jquery.flot.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/flot/0.8.1/jquery.flot.time.min.js"></script>
+<script type="text/javascript">
+ $(function() {
+ 
+  var t = [
+    {% for entry in temperature reversed %}
+      {{entry.temp_entry}}
+    {% endfor %}
+    ]
+
+    var tnew = new Array(t.length);
+    for(var i=0; i<t.length; i++){
+        var time = t[i][0];
+        time = (t[i][0])*1000;
+        var temp_time = t[i][1];
+        temp_time = (t[i][1]);
+        tnew.push([time, temp_time]);
+        }
+
+  var o = [
+    {% for entry in temperature reversed %}
+      {{entry.outside_entry}}
+    {% endfor %}
+    ]
+
+    var onew = new Array(o.length);
+    for(var i=0; i<o.length; i++){
+        var time = o[i][0];
+        time = (o[i][0])*1000;
+        var outside_time = o[i][1];
+        outside_time = (o[i][1]);
+        onew.push([time, outside_time]);
+        }
+
+  var g = [
+    {% for entry in temperature reversed %}
+      {{entry.target_entry}}
+    {% endfor %}
+    ]
+    
+    var gnew = new Array(g.length);
+    for(var i=0; i<g.length; i++){
+        var time = g[i][0];
+        time = (g[i][0])*1000;
+        var target_time = g[i][1];
+        target_time = (g[i][1]);
+        gnew.push([time, target_time]);
+        }
+
+  var f = [
+    {% for entry in temperature reversed %}
+      {{entry.furnace_entry}}
+    {% endfor %}
+    ]
+    
+    var fnew = new Array(f.length);
+    for(var i=0; i<f.length;i++){
+        var time = f[i][0];
+        time = (f[i][0])*1000;
+        var furnace_time = f[i][1];
+        furnace_time = (f[i][1]*t[i][1]);
+        fnew.push([time, furnace_time]);
+        }
+
+  $.plot("#combined", [{
+   data: tnew,
+   lines: { show: true, fill: true }
+  }, {
+   data: fnew,
+   lines: { show: true, lineWidth: 0, fill: 0.5 }
+  }, {
+   data: gnew,
+   lines: { show: true }
+  }, {
+   data: onew,
+   points: { show: true, radius: 1 }
+  }], {
+      xaxis: {
+          mode: "time",
+          minTickSize: [1, "minute"],
+          twelveHourClock: false,
+          timezone: "browser"
+  }});
+
+ });
+ 
+</script> </head>
+ <body>
+  <h2 style="font-family: sans-serif">
+   Furnace state</h2>
+  <center>
+   <div id="combined" style="width:1000px; height:500px; font-family: sans-serif">
+    &nbsp;</div>
+   <div id="controls" style="font-family: sans-serif">
+   <br /><form action="/submit" method="post">
+   Target temperature: <select name="target_temperature" size="1">
+  <option value="0">0</option>
+  <option value="10">10</option>
+  <option value="11">11</option>
+  <option value="12">12</option>
+  <option value="13">13</option>
+  <option value="14">14</option>
+  <option value="15">15</option>
+  <option value="16">16</option>
+  <option selected="selected" value="17">17</option>
+  <option value="18">18</option>
+  <option value="19">19</option>
+  <option value="20">20</option>
+</select>&deg;C to be achieved in
+<select name="target_start_minutes" size="1">
+  <option value="0">0</option>
+  <option value="5">5</option>
+  <option value="10">10</option>
+  <option value="15">15</option>
+  <option selected="selected" value="20">20</option>
+  <option value="25">25</option>
+  <option value="30">30</option>
+  <option value="35">35</option>
+  <option value="40">40</option>
+  <option value="45">45</option>
+  <option value="50">50</option>
+  <option value="55">55</option>
+  <option value="60">60</option>
+  <option value="90">90</option>
+  <option value="120">120</option>
+</select> minutes and held for
+<select name="target_held_minutes" size="1">
+  <option value="5">5</option>
+  <option value="10">10</option>
+  <option selected="selected" value="15">15</option>
+  <option value="20">20</option>
+  <option value="25">25</option>
+  <option value="30">30</option>
+  <option value="35">35</option>
+  <option value="40">40</option>
+  <option value="45">45</option>
+  <option value="50">50</option>
+  <option value="55">55</option>
+  <option value="60">60</option>
+  <option value="90">90</option>
+  <option value="120">120</option>
+</select> minutes.<br />
+<br />
+   <input name="target_submit" type="submit" value="Submit" /></form></center></div>
+   <p style="font-family: sans-serif"><a href="{{ logout_url }}">logout</a></p>
+ </body>
+</html>
