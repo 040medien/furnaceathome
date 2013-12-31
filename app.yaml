@@ -9,5 +9,9 @@ handlers:
   static_files: media/favicon.ico
   upload: media/favicon.ico
 
+- url: /apple-touch-icon.png
+  static_files: media/apple-touch-icon.png
+  upload: media/apple-touch-icon.png
+
 - url: /.*
   script: furnace.app
