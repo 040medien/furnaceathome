@@ -5,5 +5,9 @@ api_version: 1
 threadsafe: true
 
 handlers:
+- url: /favicon.ico
+  static_files: media/favicon.ico
+  upload: media/favicon.ico
+
 - url: /.*
   script: furnace.app
