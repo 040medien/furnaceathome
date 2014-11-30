@@ -1,6 +1,8 @@
 <html>
  <head>
 <title>Furnace at Home</title>
+<meta http-equiv="cache-control" content="no-cache" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/flot/0.8.1/jquery.flot.min.js"></script>
@@ -63,12 +65,30 @@
     for(var i=0; i<f.length;i++){
         var time = f[i][0];
         time = (f[i][0])*1000;
-        var furnace_time = f[i][1];
-        furnace_time = (f[i][1]*t[i][1]);
+        if (t[i][1] == 'True')
+            {
+                var furnace_time = f[i][1];
+            } else {
+                var furnace_time = 0;
+            }
         fnew.push([time, furnace_time]);
         }
+       
+  var h = [
+    {% for entry in temperature reversed %}
+      {{entry.home_entry}}
+    {% endfor %}
+    ];
+  var home_state = h[h.length - 1][1];
+  
+  var d = [
+    {% for entry in temperature reversed %}
+      {{entry.state_entry}}
+    {% endfor %}
+    ];
+  var state = d[d.length - 1][1];
 
-  $.plot("#combined", [{
+  $.plot("#graph", [{
    data: tnew,
    lines: { show: true, fill: true }
   }, {
@@ -87,15 +107,101 @@
           twelveHourClock: false,
           timezone: "browser"
   }});
+  
+  $( "#indoor_temp" ).html( parseFloat(temp_time).toFixed(1) +"&deg;C" );
+  $( "#outside_temp" ).html( parseFloat(outside_time).toFixed(1) +"&deg;C" );
+  $( "#target_temp" ).html(target_time +"&deg;C" );
+  if (furnace_time > 0) 
+      { $( "#furnace_state" ).attr('src', '/media/furnace_on.png'); }
+  else
+      { $( "#furnace_state" ).attr('src', '/media/furnace_off.png'); }
+    
+  $( "#target_up" ).on("click", function(event){
+      if ( ( parseInt(target_time) < 20 ) && ( home_state = 'home' ) ) {
+         target_time = parseInt(target_time) + 1;
+         var dataString = 'default_temp=' + target_time + '&state=' + state;
+         $.ajax({ 
+           type: "POST",
+           url: "/submit",
+           data: dataString,
+           success: function() {
+             $( "#target_temp" ).html(target_time +"&deg;C" );
+           }
+         })
+      }
+  });
+
+  $( "#target_down" ).on("click", function(event){
+      if ( ( parseInt(target_time) > 0 ) && ( home_state = 'home' ) ) {
+         target_time = parseInt(target_time) - 1;
+         var dataString = 'default_temp=' + target_time + '&state=' + state;
+         $.ajax({ 
+           type: "POST",
+           url: "/submit",
+           data: dataString,
+           success: function() {
+             $( "#target_temp" ).html(target_time +"&deg;C" );
+           }
+         })
+      }
+  });
 
  });
  
-</script> </head>
+</script>
+
+<style type="text/css">
+.target_button {
+    background-color: #ccc;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius:6px;
+    color: #fff;
+    font-family: 'sans-serif';
+    font-size: 80px;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    width: 100px;
+    height: 100px;
+    text-align: center;
+    vertical-align: middle;
+    padding: 0px;
+}
+</style>
+</head>
  <body>
   <h2 style="font-family: sans-serif">
    Furnace state</h2>
   <center>
-   <div id="combined" style="width:1000px; height:500px; font-family: sans-serif">
+  <p>
+  		<table align="center" border="0" cellpadding="0" cellspacing="0" style="width: 800px;" id="status">
+			<tbody>
+				<tr>
+					<td colspan="2" rowspan="2">
+            <img id="state_icon" alt="state" src="/media/day.png" style="width: 77px; height: 77px; margin: 0px; vertical-align: top;">&nbsp;
+            <span id="target_temp" style="color: rgb(200, 0, 0); font-family: sans-serif; font-size: 256px; letter-spacing:-16px; vertical-align: middle;">XX&deg;C</span>
+          </td>
+          <td><input id="target_up" name="target_up" class="target_button" type="button" value="+" /></td>
+				</tr>
+        <tr>
+          <td><input id="target_down" name="target_down" class="target_button" type="button" value="-" /></td>
+        </tr>
+				<tr>
+					<td>
+						<img id="indoor_icon" alt="indoor" src="/media/indoor.png" style="width: 84px; height: 77px; margin: 0px; vertical-align: middle;">&nbsp;
+            <span id="indoor_temp" style="font-family:sans-serif; color: rgb(255, 165, 0); font-size: 72px; letter-spacing:-4px; vertical-align: middle;">XX.X&deg;C</span></td>
+					<td>
+						<img id="outdoor_icon" alt="outdoor" src="/media/outdoor.png" style="width: 84px; height: 77px; margin: 0px; vertical-align: middle;">&nbsp;&nbsp;
+            <span id="outside_temp" style="font-family:sans-serif; color: rgb(93, 164, 93); font-size: 72px; letter-spacing:-4px; vertical-align: middle;">XX.X&deg;C</span></td>
+					<td>
+						<img id="furnace_state" alt="furnace state" src="/media/furnace_off.vertical-align: middle" style="width: 46px; height: 78px; margin: 0px; vertical-align: middle;" /></td>
+				</tr>
+			</tbody>
+		</table>
+    </br>
+   </p>
+   <div id="graph" style="width:1000px; height:500px; font-family: sans-serif">
     &nbsp;</div>
    <div id="controls" style="font-family: sans-serif">
    <br /><form action="/submit" method="post">

@@ -13,5 +13,8 @@ handlers:
   static_files: media/apple-touch-icon.png
   upload: media/apple-touch-icon.png
 
+- url: /media
+  static_dir: media
+
 - url: /.*
   script: furnace.app

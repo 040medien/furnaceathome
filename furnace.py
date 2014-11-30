@@ -21,7 +21,8 @@ class TemperatureEntry(db.Model):
     target = db.FloatProperty()
     furnacestate = db.IntegerProperty()
     homestate = db.StringProperty()
-    outside = db.IntegerProperty()
+    outside = db.FloatProperty()
+    state = db.TextProperty()
     other = db.FloatProperty()
  
 class DailyTemperatureEntry(db.Model):
@@ -32,6 +33,7 @@ class DailyTemperatureEntry(db.Model):
     room_entry = db.TextProperty()
     home_entry = db.TextProperty()
     outside_entry = db.TextProperty()
+    state_entry = db.TextProperty()
 
 class TargetEntry(db.Model):
     date = db.IntegerProperty()
@@ -39,6 +41,11 @@ class TargetEntry(db.Model):
     target_start_minutes_entry = db.IntegerProperty()
     target_held_minutes_entry = db.IntegerProperty()
     target_executed = db.BooleanProperty()
+    when_home_temperature_entry = db.IntegerProperty()
+    when_away_temperature_entry = db.IntegerProperty()
+    when_night_temperature_entry = db.IntegerProperty()
+    when_night_away_temperature_entry = db.IntegerProperty()
+    when_timer_temperature_entry = db.IntegerProperty()
 
 class MainHandler(webapp.RequestHandler):
     def get(self):
@@ -54,7 +61,8 @@ class Temperature(webapp.RequestHandler):
         furnace = str(cgi.escape(self.request.get('f')))
         room = str(cgi.escape(self.request.get('r')))
         home = str(cgi.escape(self.request.get('h')))
-        outside = str(int(cgi.escape(self.request.get('o'))))
+        outside = str(float(cgi.escape(self.request.get('o'))))
+        state = str(cgi.escape(self.request.get('h')))
         strS = str(cgi.escape(self.request.get('s')))
         # secret added since I don't want just anyone to pollute my furnace data!
         if hashlib.sha512(strS).hexdigest() == secretHash:
@@ -64,12 +72,13 @@ class Temperature(webapp.RequestHandler):
 		        rightNow = str(rightNow)
 		        if recent_record.count()!=0: #update entry
 		            dayObj = recent_record[0]
-		            dayObj.temp_entry = dayObj.temp_entry + '['+rightNow+','+temp+'],'  
-		            dayObj.target_entry = dayObj.target_entry + '['+rightNow+','+target+'],'  
-		            dayObj.furnace_entry = dayObj.furnace_entry + '['+rightNow+','+furnace+'],'  
-		            dayObj.room_entry = dayObj.room_entry + '['+rightNow+','+room+'],'  
-		            dayObj.home_entry = dayObj.home_entry + '['+rightNow+','+home+'],'  
-		            dayObj.outside_entry = dayObj.outside_entry + '['+rightNow+','+outside+'],'  
+		            dayObj.temp_entry = dayObj.temp_entry + '['+rightNow+','+temp+'],'
+		            dayObj.target_entry = dayObj.target_entry + '['+rightNow+','+target+'],'
+		            dayObj.furnace_entry = dayObj.furnace_entry + '['+rightNow+','+furnace+'],'
+		            dayObj.room_entry = dayObj.room_entry + '['+rightNow+','+room+'],'
+		            dayObj.home_entry = dayObj.home_entry + '['+rightNow+',"'+home+'"],'
+		            dayObj.outside_entry = dayObj.outside_entry + '['+rightNow+','+outside+'],'
+                  dayObj.state_entry = dayObj.state_entry + '['+rightNow+',"'+state+'"],'
 		            dayObj.put()	
 		        else: #create entry
 		            newEntry = DailyTemperatureEntry(
@@ -78,13 +87,15 @@ class Temperature(webapp.RequestHandler):
 			              target_entry = '['+rightNow+','+target+'],',
 			              furnace_entry = '['+rightNow+','+furnace+'],',
 			              room_entry = '['+rightNow+','+room+'],',
-			              home_entry = '['+rightNow+','+home+'],',
+			              home_entry = '['+rightNow+',"'+home+'"],',
+                       state_entry = '['+rightNow+',"'+state+'"],',     
 			              outside_entry = '['+rightNow+','+outside+'],'
 		            )	
 		            newEntry.put()        	
 		        self.response.headers.add_header("X-Raspberry-Pi-Data", temp +','+ \
 		                                                     target +','+ furnace + \
-		                                                     ','+ room +','+ home +','+ outside)
+		                                                     ','+ room +','+ home + \
+                                                         ','+ outside, ','+ state)
 		        the_target = db.GqlQuery("SELECT * FROM TargetEntry ORDER BY date DESC LIMIT 1")
 		        template_values = {
 		            'target' : the_target
@@ -97,7 +108,7 @@ class Temperature(webapp.RequestHandler):
 class Submit(webapp.RequestHandler):
     def post(self):
       user = users.get_current_user()
-      if user and user.nickname() in valid_users:
+      if user and user.nickname() in valid_users and self.request.get('target_temperature'):
         self.response.write('<html><head><meta http-equiv="refresh" content="5; url=https://furnaceathome.appspot.com/t"></head><body>')
         target_temperature=int(cgi.escape(self.request.get('target_temperature')))
         target_start_minutes=int(cgi.escape(self.request.get('target_start_minutes')))
@@ -140,6 +151,19 @@ class Submit(webapp.RequestHandler):
                 newEntry.put()        	
                 self.response.headers.add_header("X-Raspberry-Pi-Data", target_temperature +','+ \
                                                          target_start_minutes +','+ target_held_minutes)
+      elif self.request.get('when_home_temp'):
+        when_home_temperature=int(cgi.escape(self.request.get('when_home_temp')))
+        recent_record = TargetEntry.gql("WHERE date > 0 ORDER BY date DESC")
+        if recent_record.count()!=0: #update entry
+                targetObj = recent_record[0]
+                targetObj.when_home_temperature_entry = when_home_temperature
+                targetObj.put()
+        else: #create entry
+                newEntry = TargetEntry(
+                    when_home_temperature_entry = when_home_temperature
+                )    
+                newEntry.put()        	
+                self.response.headers.add_header("X-Raspberry-Pi-Data", ': ', when_home_temperature, ', ', state)
 
 
 
