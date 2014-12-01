@@ -188,7 +188,7 @@ class ShowTemperature(webapp.RequestHandler):
             self.response.out.write('<html><body>%s</body></html>' % greeting)
 
 app = webapp.WSGIApplication([('/', MainHandler),
-                              ('/temperature/.?', Temperature),
+                              ('/temperature', Temperature),
                               ('/submit', Submit),
                               ('/t', ShowTemperature)
                              ])
