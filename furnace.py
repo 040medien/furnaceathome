@@ -78,7 +78,7 @@ class Temperature(webapp.RequestHandler):
 		            dayObj.room_entry = dayObj.room_entry + '['+rightNow+','+room+'],'
 		            dayObj.home_entry = dayObj.home_entry + '['+rightNow+',"'+home+'"],'
 		            dayObj.outside_entry = dayObj.outside_entry + '['+rightNow+','+outside+'],'
-                  dayObj.state_entry = dayObj.state_entry + '['+rightNow+',"'+state+'"],'
+                            dayObj.state_entry = dayObj.state_entry + '['+rightNow+',"'+state+'"],'
 		            dayObj.put()	
 		        else: # create entry
 		            newEntry = DailyTemperatureEntry(
@@ -88,7 +88,7 @@ class Temperature(webapp.RequestHandler):
 			              furnace_entry = '['+rightNow+','+furnace+'],',
 			              room_entry = '['+rightNow+','+room+'],',
 			              home_entry = '['+rightNow+',"'+home+'"],',
-                       state_entry = '['+rightNow+',"'+state+'"],',     
+                                      state_entry = '['+rightNow+',"'+state+'"],',     
 			              outside_entry = '['+rightNow+','+outside+'],'
 		            )	
 		            newEntry.put()        	
