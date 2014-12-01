@@ -50,7 +50,7 @@ class MainHandler(webapp.RequestHandler):
         self.redirect('http://www.google.com/')
 
 class Temperature(webapp.RequestHandler):
-    def get(self):
+    def post(self):
         secretHash = 'd6317c18a9854602486bd6dc2a4e6a1e8a2fd' + \
             '03fec1bba13a26775406caeb8922ce75884d6dadb3a86e' + \
             '959b22850aa8d19bd13e04fc4458183dfd3916d012853'
@@ -65,7 +65,7 @@ class Temperature(webapp.RequestHandler):
         if hashlib.sha512(strS).hexdigest() == secretHash:
 		        rightNow = int(time.time())
 		        dayAgo = rightNow-86400
-		        recent_record = DailyTemperatureEntry.gql("WHERE date > :1 ORDER BY date DESC",dayAgo)
+		        recent_record = DailyTemperatureEntry.gql("WHERE date > :1 ORDER BY date DESC", dayAgo)
 		        rightNow = str(rightNow)
 		        if recent_record.count()!=0: # update entry
 		            dayObj = recent_record[0]
@@ -90,7 +90,7 @@ class Temperature(webapp.RequestHandler):
 		        self.response.headers.add_header("X-Raspberry-Pi-Data", temp +','+ \
 		                                                     target +','+ furnace + \
 		                                                     ','+ room +','+ home + \
-                                                         ','+ outside)
+                                                                     ','+ outside)
 		        the_target = db.GqlQuery("SELECT * FROM TargetEntry ORDER BY date DESC LIMIT 1")
 		        template_values = {
 		            'target' : the_target
@@ -101,7 +101,7 @@ class Temperature(webapp.RequestHandler):
 		        self.error(500)
 
 class Submit(webapp.RequestHandler):
-    def get(self):
+    def post(self):
       user = users.get_current_user()
       if user and user.nickname() in valid_users and self.request.get('target_temperature'):
         self.response.write('<html><head><meta http-equiv="refresh" content="5; url=https://furnaceathome.appspot.com/t"></head><body>')
