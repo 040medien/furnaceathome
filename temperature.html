@@ -9,11 +9,12 @@
 <script src="//cdnjs.cloudflare.com/ajax/libs/flot/0.8.2/jquery.flot.time.min.js"></script>
 <script type="text/javascript">
  $(function() {
+
+  var True = true;
+  var False = false;
+
  
   var t = [
-
-    var True = true;
-    var False = false;
 
     {% for entry in temperature reversed %}
       {{entry.temp_entry}}
