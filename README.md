@@ -1,4 +1,4 @@
 furnaceathome
 =============
 
-Control my furnace remote
+Control my furnace remotely
