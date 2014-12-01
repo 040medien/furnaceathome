@@ -70,7 +70,7 @@ class Temperature(webapp.RequestHandler):
 		        dayAgo = rightNow-86400
 		        recent_record = DailyTemperatureEntry.gql("WHERE date > :1 ORDER BY date DESC",dayAgo)
 		        rightNow = str(rightNow)
-		        if recent_record.count()!=0: #update entry
+		        if recent_record.count()!=0: # update entry
 		            dayObj = recent_record[0]
 		            dayObj.temp_entry = dayObj.temp_entry + '['+rightNow+','+temp+'],'
 		            dayObj.target_entry = dayObj.target_entry + '['+rightNow+','+target+'],'
@@ -80,7 +80,7 @@ class Temperature(webapp.RequestHandler):
 		            dayObj.outside_entry = dayObj.outside_entry + '['+rightNow+','+outside+'],'
                   dayObj.state_entry = dayObj.state_entry + '['+rightNow+',"'+state+'"],'
 		            dayObj.put()	
-		        else: #create entry
+		        else: # create entry
 		            newEntry = DailyTemperatureEntry(
 			              date = int(time.time()),
 			              temp_entry = '['+rightNow+','+temp+'],',
@@ -106,7 +106,7 @@ class Temperature(webapp.RequestHandler):
 		        self.error(500)
 
 class Submit(webapp.RequestHandler):
-    def post(self):
+    def get(self):
       user = users.get_current_user()
       if user and user.nickname() in valid_users and self.request.get('target_temperature'):
         self.response.write('<html><head><meta http-equiv="refresh" content="5; url=https://furnaceathome.appspot.com/t"></head><body>')
