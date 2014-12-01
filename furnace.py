@@ -24,7 +24,7 @@ class TemperatureEntry(db.Model):
     outside = db.FloatProperty()
     state = db.TextProperty()
     other = db.FloatProperty()
- 
+
 class DailyTemperatureEntry(db.Model):
     date = db.IntegerProperty()
     temp_entry = db.TextProperty()
@@ -50,7 +50,7 @@ class TargetEntry(db.Model):
 class MainHandler(webapp.RequestHandler):
     def get(self):
         self.redirect('http://www.google.com/')
- 
+
 class Temperature(webapp.RequestHandler):
     def get(self):
         secretHash = 'd6317c18a9854602486bd6dc2a4e6a1e8a2fd' + \
