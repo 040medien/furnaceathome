@@ -11,6 +11,10 @@
  $(function() {
  
   var t = [
+
+    var True = true;
+    var False = false;
+
     {% for entry in temperature reversed %}
       {{entry.temp_entry}}
     {% endfor %}
