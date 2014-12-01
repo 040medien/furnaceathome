@@ -88,13 +88,6 @@
     ];
   var home_state = h[h.length - 1][1];
   
-  var d = [
-    {% for entry in temperature reversed %}
-      {{entry.state_entry}}
-    {% endfor %}
-    ];
-  var state = d[d.length - 1][1];
-
   $.plot("#graph", [{
    data: tnew,
    lines: { show: true, fill: true }
@@ -126,7 +119,7 @@
   $( "#target_up" ).on("click", function(event){
       if ( ( parseInt(target_time) < 20 ) && ( home_state = 'home' ) ) {
          target_time = parseInt(target_time) + 1;
-         var dataString = 'default_temp=' + target_time + '&state=' + state;
+         var dataString = 'default_temp=' + target_time;
          $.ajax({ 
            type: "POST",
            url: "/submit",
@@ -141,7 +134,7 @@
   $( "#target_down" ).on("click", function(event){
       if ( ( parseInt(target_time) > 0 ) && ( home_state = 'home' ) ) {
          target_time = parseInt(target_time) - 1;
-         var dataString = 'default_temp=' + target_time + '&state=' + state;
+         var dataString = 'default_temp=' + target_time;
          $.ajax({ 
            type: "POST",
            url: "/submit",

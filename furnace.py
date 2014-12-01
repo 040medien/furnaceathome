@@ -22,7 +22,6 @@ class TemperatureEntry(db.Model):
     furnacestate = db.IntegerProperty()
     homestate = db.StringProperty()
     outside = db.FloatProperty()
-    state = db.TextProperty()
     other = db.FloatProperty()
 
 class DailyTemperatureEntry(db.Model):
@@ -33,7 +32,6 @@ class DailyTemperatureEntry(db.Model):
     room_entry = db.TextProperty()
     home_entry = db.TextProperty()
     outside_entry = db.TextProperty()
-    state_entry = db.TextProperty()
 
 class TargetEntry(db.Model):
     date = db.IntegerProperty()
@@ -62,7 +60,6 @@ class Temperature(webapp.RequestHandler):
         room = str(cgi.escape(self.request.get('r')))
         home = str(cgi.escape(self.request.get('h')))
         outside = str(float(cgi.escape(self.request.get('o'))))
-        state = str(cgi.escape(self.request.get('h')))
         strS = str(cgi.escape(self.request.get('s')))
         # secret added since I don't want just anyone to pollute my furnace data!
         if hashlib.sha512(strS).hexdigest() == secretHash:
@@ -78,7 +75,6 @@ class Temperature(webapp.RequestHandler):
 		            dayObj.room_entry = dayObj.room_entry + '['+rightNow+','+room+'],'
 		            dayObj.home_entry = dayObj.home_entry + '['+rightNow+',"'+home+'"],'
 		            dayObj.outside_entry = dayObj.outside_entry + '['+rightNow+','+outside+'],'
-                            dayObj.state_entry = dayObj.state_entry + '['+rightNow+',"'+state+'"],'
 		            dayObj.put()	
 		        else: # create entry
 		            newEntry = DailyTemperatureEntry(
@@ -88,14 +84,13 @@ class Temperature(webapp.RequestHandler):
 			              furnace_entry = '['+rightNow+','+furnace+'],',
 			              room_entry = '['+rightNow+','+room+'],',
 			              home_entry = '['+rightNow+',"'+home+'"],',
-                                      state_entry = '['+rightNow+',"'+state+'"],',     
 			              outside_entry = '['+rightNow+','+outside+'],'
 		            )	
 		            newEntry.put()        	
 		        self.response.headers.add_header("X-Raspberry-Pi-Data", temp +','+ \
 		                                                     target +','+ furnace + \
 		                                                     ','+ room +','+ home + \
-                                                         ','+ outside, ','+ state)
+                                                         ','+ outside)
 		        the_target = db.GqlQuery("SELECT * FROM TargetEntry ORDER BY date DESC LIMIT 1")
 		        template_values = {
 		            'target' : the_target
@@ -163,7 +158,7 @@ class Submit(webapp.RequestHandler):
                     when_home_temperature_entry = when_home_temperature
                 )    
                 newEntry.put()        	
-                self.response.headers.add_header("X-Raspberry-Pi-Data", ': ', when_home_temperature, ', ', state)
+                self.response.headers.add_header("X-Raspberry-Pi-Data", ': ', when_home_temperature)
 
 
 
