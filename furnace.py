@@ -20,7 +20,7 @@ class TemperatureEntry(db.Model):
     temperature = db.FloatProperty()
     target = db.FloatProperty()
     furnacestate = db.IntegerProperty()
-    homestate = db.StringProperty()
+    mode = db.StringProperty()
     outside = db.FloatProperty()
     other = db.FloatProperty()
 
@@ -30,7 +30,7 @@ class DailyTemperatureEntry(db.Model):
     target_entry = db.TextProperty()
     furnace_entry = db.TextProperty()
     room_entry = db.TextProperty()
-    home_entry = db.TextProperty()
+    mode_entry = db.TextProperty()
     outside_entry = db.TextProperty()
 
 class TargetEntry(db.Model):
@@ -39,11 +39,8 @@ class TargetEntry(db.Model):
     target_start_minutes_entry = db.IntegerProperty()
     target_held_minutes_entry = db.IntegerProperty()
     target_executed = db.BooleanProperty()
-    when_home_temperature_entry = db.IntegerProperty()
-    when_away_temperature_entry = db.IntegerProperty()
-    when_night_temperature_entry = db.IntegerProperty()
-    when_night_away_temperature_entry = db.IntegerProperty()
-    when_timer_temperature_entry = db.IntegerProperty()
+    default_temperature_entry = db.IntegerProperty()
+    default_temperature_mode_entry = db.TextProperty()
 
 class MainHandler(webapp.RequestHandler):
     def get(self):
@@ -60,6 +57,7 @@ class Temperature(webapp.RequestHandler):
         room = str(cgi.escape(self.request.get('r')))
         home = str(cgi.escape(self.request.get('h')))
         outside = str(float(cgi.escape(self.request.get('o'))))
+        mode = str(cgi.escape(self.request.get('m')))
         strS = str(cgi.escape(self.request.get('s')))
         # secret added since I don't want just anyone to pollute my furnace data!
         if hashlib.sha512(strS).hexdigest() == secretHash:
@@ -73,7 +71,7 @@ class Temperature(webapp.RequestHandler):
 		            dayObj.target_entry = dayObj.target_entry + '['+rightNow+','+target+'],'
 		            dayObj.furnace_entry = dayObj.furnace_entry + '['+rightNow+','+furnace+'],'
 		            dayObj.room_entry = dayObj.room_entry + '['+rightNow+','+room+'],'
-		            dayObj.home_entry = dayObj.home_entry + '['+rightNow+','+home+'],'
+		            dayObj.mode_entry = dayObj.mode_entry + '['+rightNow+','+mode+'],'
 		            dayObj.outside_entry = dayObj.outside_entry + '['+rightNow+','+outside+'],'
 		            dayObj.put()	
 		        else: # create entry
@@ -83,13 +81,13 @@ class Temperature(webapp.RequestHandler):
 			              target_entry = '['+rightNow+','+target+'],',
 			              furnace_entry = '['+rightNow+','+furnace+'],',
 			              room_entry = '['+rightNow+','+room+'],',
-			              home_entry = '['+rightNow+','+home+'],',
+			              mode_entry = '['+rightNow+','+mode+'],',
 			              outside_entry = '['+rightNow+','+outside+'],'
 		            )	
 		            newEntry.put()        	
 		        self.response.headers.add_header("X-Raspberry-Pi-Data", temp +','+ \
 		                                                     target +','+ furnace + \
-		                                                     ','+ room +','+ home + \
+		                                                     ','+ room +','+ mode + \
                                                                      ','+ outside)
 		        the_target = db.GqlQuery("SELECT * FROM TargetEntry ORDER BY date DESC LIMIT 1")
 		        template_values = {
@@ -138,27 +136,31 @@ class Submit(webapp.RequestHandler):
             else: #create entry
                 newEntry = TargetEntry(
                     date = int(time.time()),
-	                  target_temperature_entry = target_temperature,
-	                  target_start_minutes_entry = target_start_minutes,
-	                  target_held_minutes_entry = target_held_minutes,
+	                target_temperature_entry = target_temperature,
+	                target_start_minutes_entry = target_start_minutes,
+	                target_held_minutes_entry = target_held_minutes,
                     target_executed = False
                 )    
                 newEntry.put()        	
                 self.response.headers.add_header("X-Raspberry-Pi-Data", target_temperature +','+ \
                                                          target_start_minutes +','+ target_held_minutes)
-      elif self.request.get('when_home_temp'):
-        when_home_temperature=int(cgi.escape(self.request.get('when_home_temp')))
-        recent_record = TargetEntry.gql("WHERE date > 0 ORDER BY date DESC")
-        if recent_record.count()!=0: #update entry
-                targetObj = recent_record[0]
-                targetObj.when_home_temperature_entry = when_home_temperature
-                targetObj.put()
-        else: #create entry
-                newEntry = TargetEntry(
-                    when_home_temperature_entry = when_home_temperature
-                )    
-                newEntry.put()        	
-                self.response.headers.add_header("X-Raspberry-Pi-Data", ': ', when_home_temperature)
+      elif user and user.nickname() in valid_users and self.request.get('default_temp'):
+          default_temperature=int(cgi.escape(self.request.get('default_temp')))
+          default_temperature_mode=str(cgi.escape(self.request.get('default_temp_mode')))
+          recent_record = TargetEntry.gql("WHERE date > 0 ORDER BY date DESC")
+          if recent_record.count()!=0: #update entry
+                  targetObj = recent_record[0]
+                  targetObj.default_temperature_entry = default_temperature
+                  targetObj.default_temperature_mode_entry = default_temperature_mode
+                  targetObj.put()
+          else: #create entry
+                  newEntry = TargetEntry(
+                      default_temperature_entry = default_temperature,
+                      default_temperature_mode_entry = default_temperature_mode
+                  )    
+                  newEntry.put()        	
+                  self.response.headers.add_header("X-Raspberry-Pi-Data", ': ', default_temperature +','+ \
+                                                                            default_temperature_mode)
 
 
 

@@ -10,11 +10,11 @@
 <script type="text/javascript">
  $(function() {
 
-  var True = true;
-  var False = false;
-
   var home = 'home';
   var away = 'away';
+  var day = 'day';
+  var night = 'night';
+  var timer = 'timer';
  
   var t = [
 
@@ -27,9 +27,9 @@
     for(var i=0; i<t.length; i++){
         var time = t[i][0];
         time = (t[i][0])*1000;
-        var temp_time = t[i][1];
-        temp_time = (t[i][1]);
-        tnew.push([time, temp_time]);
+        var temp_now = t[i][1];
+        temp_now = (t[i][1]);
+        tnew.push([time, temp_now]);
         }
 
   var o = [
@@ -42,9 +42,9 @@
     for(var i=0; i<o.length; i++){
         var time = o[i][0];
         time = (o[i][0])*1000;
-        var outside_time = o[i][1];
-        outside_time = (o[i][1]);
-        onew.push([time, outside_time]);
+        var outside_now = o[i][1];
+        outside_now = (o[i][1]);
+        onew.push([time, outside_now]);
         }
 
   var g = [
@@ -57,9 +57,9 @@
     for(var i=0; i<g.length; i++){
         var time = g[i][0];
         time = (g[i][0])*1000;
-        var target_time = g[i][1];
-        target_time = (g[i][1]);
-        gnew.push([time, target_time]);
+        var target_now = g[i][1];
+        target_now = (g[i][1]);
+        gnew.push([time, target_now]);
         }
 
   var f = [
@@ -72,16 +72,16 @@
     for(var i=0; i<f.length;i++){
         var time = f[i][0];
         time = (f[i][0])*1000;
-        furnace_time = f[i][1]*t[i][1];
-        fnew.push([time, furnace_time]);
+        furnace_now = f[i][1]*t[i][1];
+        fnew.push([time, furnace_now]);
         }
        
-  var h = [
+  var m = [
     {% for entry in temperature reversed %}
-      {{entry.home_entry}}
+      {{entry.mode_entry}}
     {% endfor %}
     ];
-  var home_state = h[h.length - 1][1];
+  var mode = m[m.length - 1][1];
   
   $.plot("#graph", [{
    data: tnew,
@@ -103,39 +103,49 @@
           timezone: "browser"
   }});
   
-  $( "#indoor_temp" ).html( parseFloat(temp_time).toFixed(1) +"&deg;C" );
-  $( "#outside_temp" ).html( parseFloat(outside_time).toFixed(1) +"&deg;C" );
-  $( "#target_temp" ).html(target_time +"&deg;C" );
-  if (furnace_time > 0) 
+  $( "#indoor_temp" ).html( parseFloat(temp_now).toFixed(1) +"&deg;C" );
+  $( "#outside_temp" ).html( parseFloat(outside_now).toFixed(1) +"&deg;C" );
+  $( "#target_temp" ).html(target_now +"&deg;C" );
+  if (furnace_now > 0) 
       { $( "#furnace_state" ).attr('src', '/media/furnace_on.png'); }
   else
       { $( "#furnace_state" ).attr('src', '/media/furnace_off.png'); }
-    
+
+  if (mode == 'day') 
+      { $( "#mode_icon" ).attr('src', '/media/day.png'); }
+  else if (mode == 'night') 
+      { $( "#mode_icon" ).attr('src', '/media/night.png'); }
+  else if (mode == 'away') 
+      { $( "#mode_icon" ).attr('src', '/media/away.png'); }
+  else if (mode == 'timer') 
+      { $( "#mode_icon" ).attr('src', '/media/timer.png'); }
+
+  
   $( "#target_up" ).on("click", function(event){
-      if ( ( parseInt(target_time) < 20 ) && ( home_state = 'home' ) ) {
-         target_time = parseInt(target_time) + 1;
-         var dataString = 'default_temp=' + target_time;
+      if ( ( parseInt(target_now) <= 22 ) && ( home_state = 'home' ) ) {
+         target_now = parseInt(target_now) + 1;
+         var dataString = 'default_temp=' + target_now + '&default_temp_mode=' + mode;
          $.ajax({ 
            type: "POST",
            url: "/submit",
            data: dataString,
            success: function() {
-             $( "#target_temp" ).html(target_time +"&deg;C" );
+             $( "#target_temp" ).html(target_now +"&deg;C" );
            }
          })
       }
   });
 
   $( "#target_down" ).on("click", function(event){
-      if ( ( parseInt(target_time) > 0 ) && ( home_state = 'home' ) ) {
-         target_time = parseInt(target_time) - 1;
-         var dataString = 'default_temp=' + target_time;
+      if ( ( parseInt(target_now) > 0 ) && ( home_state = 'home' ) ) {
+         target_now = parseInt(target_now) - 1;
+         var dataString = 'default_temp=' + target_now + '&default_temp_mode=' + mode;
          $.ajax({ 
            type: "POST",
            url: "/submit",
            data: dataString,
            success: function() {
-             $( "#target_temp" ).html(target_time +"&deg;C" );
+             $( "#target_temp" ).html(target_now +"&deg;C" );
            }
          })
       }
@@ -174,7 +184,7 @@
 			<tbody>
 				<tr>
 					<td colspan="2" rowspan="2">
-            <img id="state_icon" alt="state" src="/media/day.png" style="width: 77px; height: 77px; margin: 0px; vertical-align: top;">&nbsp;
+            <img id="mode_icon" alt="mode" src="/media/day.png" style="width: 77px; height: 77px; margin: 0px; vertical-align: top;">&nbsp;
             <span id="target_temp" style="color: rgb(200, 0, 0); font-family: sans-serif; font-size: 256px; letter-spacing:-16px; vertical-align: middle;">XX&deg;C</span>
           </td>
           <td><input id="target_up" name="target_up" class="target_button" type="button" value="+" /></td>
