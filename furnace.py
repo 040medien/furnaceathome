@@ -109,7 +109,7 @@ class Submit(webapp.RequestHandler):
         target_start_minutes=int(cgi.escape(self.request.get('target_start_minutes')))
         target_held_minutes=int(cgi.escape(self.request.get('target_held_minutes')))
         errors = 0
-        if 0 <= target_temperature <= 20:
+        if 0 <= target_temperature <= 22:
             self.response.write('will set target to %s &deg;C</br>' % target_temperature)
         else:
             self.response.write('invalid temperature: %s</br></body></html>' % target_temperature)

@@ -72,12 +72,7 @@
     for(var i=0; i<f.length;i++){
         var time = f[i][0];
         time = (f[i][0])*1000;
-        if (t[i][1] == 'True')
-            {
-                var furnace_time = f[i][1];
-            } else {
-                var furnace_time = 0;
-            }
+        furnace_time = f[i][1]*t[i][1];
         fnew.push([time, furnace_time]);
         }
        
@@ -218,6 +213,8 @@
   <option value="18">18</option>
   <option value="19">19</option>
   <option value="20">20</option>
+  <option value="21">21</option>
+  <option value="22">22</option>
 </select>&deg;C to be achieved in
 <select name="target_start_minutes" size="1">
   <option value="0">0</option>
