@@ -57,14 +57,14 @@ def ping(ip_address):
     try:
         ping = subprocess.Popen(["nmap", "-sP", ip_address], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, error = ping.communicate()
-        received = 0
+        received=-1
         if out:
             try:
                 received=int(re.findall(r"(\d+) host up", out)[0])
             except:
-                print "no data for packets received"
+                received=0
         else:
-            print 'No ping'
+            print 'No response from nmap'
     except subprocess.CalledProcessError:
         print "Couldn't get a ping"
     return received
