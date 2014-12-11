@@ -215,7 +215,7 @@ def btConnection(config, sendchar = 'n', close_after = True):
     else:
         return False
 
-def turnOnFurnace(config, furnace_state, furnace_no):
+def turnOnFurnace(config, furnace_no):
     """turns on a furnace using the bluetooth relay"""
     channels = config.relay_channels
     if furnace_no <= channels:
@@ -239,7 +239,7 @@ def turnOnFurnace(config, furnace_state, furnace_no):
         #raise
     return furnace_state
 
-def turnOffFurnace(config, furnace_state, furnace_no):
+def turnOffFurnace(config, furnace_no):
     """turns off a furnace using the bluetooth relay"""
     channels = config.relay_channels
     if furnace_no <= channels:
@@ -268,15 +268,20 @@ def checkOutdoorTemp(zip_code):
         outdoor_temperature = 0
     return outdoor_temperature
 
-def checkIndoorTemp():
+def checkIndoorTemp(config):
     """Gets indoor temperature from USB thermometer using command line tool"""
     # repeat forever - temper is very flaky
+    tries = 0
     while True:
+        tries += 1
         try:
             indoor_temp = float(subprocess.Popen("/usr/local/bin/temper", stdout=subprocess.PIPE).communicate()[0])
             break
         except ValueError:
             print "Oops! Did not get a temperature. Trying again..."
+            if tries == 10:
+                # better turn off the furnace, probably an issue with the USB device
+                turnOffFurnace(config, config.primary_furnace)
     return indoor_temp
 
 def transmit(config, outdoor_temp, indoor_temp):
@@ -316,10 +321,10 @@ def transmit(config, outdoor_temp, indoor_temp):
         print 'Socket error'
     if rounded_indoor_temp < config.indoor_temp_target and furnace_state[ primary_furnace ] == 0:
         print "it is too cold"
-        furnace_state = turnOnFurnace(config, furnace_state, primary_furnace)
+        furnace_state = turnOnFurnace(config, primary_furnace)
     elif rounded_indoor_temp >= config.indoor_temp_target and furnace_state[ primary_furnace ] == 1:
         print "it is warm enough"
-        furnace_state = turnOffFurnace(config, furnace_state, primary_furnace)
+        furnace_state = turnOffFurnace(config, primary_furnace)
     elif rounded_indoor_temp < config.indoor_temp_target and furnace_state[ primary_furnace ] == 1:
         print "heating up"
     elif rounded_indoor_temp >= config.indoor_temp_target and furnace_state[ primary_furnace ] == 0:    
@@ -336,7 +341,7 @@ def loop():
         beforetime = mktime(datetime.now().utctimetuple())
         config.last_time_home, config.home_status, config.presence_devices_wifi = checkPresence(config)
         outdoor_temp=checkOutdoorTemp(config.zip_code)
-        indoor_temp=checkIndoorTemp()
+        indoor_temp=checkIndoorTemp(config)
         config = getTarget(config, indoor_temp)
         config.furnace_state, config.indoor_temp_target_dict=transmit(config, outdoor_temp, indoor_temp)
         aftertime = mktime(datetime.now().utctimetuple())
